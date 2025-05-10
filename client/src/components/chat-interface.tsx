@@ -263,14 +263,14 @@ export function ChatInterface() {
               </Button>
               {/* )} */}
               
-              <Button
+              {/* <Button
                 onClick={() => setShowAvatar(!showAvatar)}
                 variant={showAvatar ? "outline" : "secondary"}
                 className="min-w-[40px]"
               >
                 <Video className="sm:mr-2 h-4 w-4" />
                 <ButtonText>{showAvatar ? "Hide Avatar" : "Show Avatar"}</ButtonText>
-              </Button>
+              </Button> */}
             </div>
 
             {webRtc.isConnected && (
