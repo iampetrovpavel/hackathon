@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Mic, MicOff, Power, PowerOff, Loader2, Play, AudioLines, VolumeX, Volume2, ArrowRight } from 'lucide-react';
+import { Mic, MicOff, Power, PowerOff, Loader2, Play, AudioLines, VolumeX, Volume2, ArrowRight, Video } from 'lucide-react';
 import { Button } from './ui/button';
 import useWebRtcAi from '../hooks/useWebRtcAi';
+import useAvatar from '../hooks/useAvatar';
 import { useChatStore } from '../store/chat-store';
 import { useRequestStore } from '../store/request-store';
 import { Header } from './header';
@@ -17,12 +18,14 @@ const ButtonText = ({ children }: { children: React.ReactNode }) => (
 
 export function ChatInterface() {
   const webRtc = useWebRtcAi();
+  const avatar = useAvatar({ language: 'en' });
   const { messages, addMessage, setIsConnected, setIsListening, clearMessages } = useChatStore();
   const { setProjectData } = useRequestStore();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [textMessage, setTextMessage] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
+  const [showAvatar, setShowAvatar] = useState(false);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -31,8 +34,13 @@ export function ChatInterface() {
   useEffect(() => {
     webRtc.setTranscriptionCallback((message) => {
       addMessage(message);
+      
+      // Make avatar speak when assistant responds
+      if (message.role === 'assistant' && avatar.stream && showAvatar) {
+        avatar.handleSpeak(message.content);
+      }
     });
-  }, [webRtc, addMessage]);
+  }, [webRtc, addMessage, avatar, showAvatar]);
 
   useEffect(() => {
     scrollToBottom();
@@ -48,6 +56,10 @@ export function ChatInterface() {
     webRtc.disconnect();
     setIsConnected(false);
     setIsListening(false);
+    
+    if (avatar.stream) {
+      avatar.endSession();
+    }
   };
 
   const handleSendMessage = (e: React.FormEvent) => {
@@ -70,29 +82,72 @@ export function ChatInterface() {
       <Header />
 
       <div className="flex-1 overflow-hidden flex flex-col">
-        <div className="flex-1 overflow-auto p-4">
-          <div className="max-w-3xl mx-auto space-y-4">
-            {messages.map((message, index) => (
-              <div
-                key={index}
-                className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'
-                  }`}
-              >
+        <div className="flex flex-1 overflow-hidden">
+          <div className={`flex-1 overflow-auto p-4 ${showAvatar ? 'w-1/2' : 'w-full'}`}>
+            <div className="max-w-3xl mx-auto space-y-4">
+              {messages.map((message, index) => (
                 <div
-                  className={`rounded-lg px-4 py-2 max-w-sm ${message.role === 'user'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-white text-gray-900'
+                  key={index}
+                  className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'
                     }`}
                 >
-                  <div><ReactMarkdown>{message.content}</ReactMarkdown></div>
-                  <span className="text-xs opacity-75">
-                    {new Date(message.timestamp).toLocaleTimeString()}
-                  </span>
+                  <div
+                    className={`rounded-lg px-4 py-2 max-w-sm ${message.role === 'user'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-white text-gray-900'
+                      }`}
+                  >
+                    <div><ReactMarkdown>{message.content}</ReactMarkdown></div>
+                    <span className="text-xs opacity-75">
+                      {new Date(message.timestamp).toLocaleTimeString()}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            ))}
-            <div ref={messagesEndRef} />
+              ))}
+              <div ref={messagesEndRef} />
+            </div>
           </div>
+          
+          {showAvatar && (
+            <div className="w-1/2 border-l border-gray-200 bg-white overflow-hidden">
+              <div className="h-full">
+                {avatar.stream ? (
+                  <div className="h-full flex justify-center items-center">
+                    <video
+                      ref={avatar.mediaStream}
+                      autoPlay
+                      playsInline
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'contain',
+                      }}
+                    >
+                      <track kind="captions" />
+                    </video>
+                  </div>
+                ) : (
+                  <div className="h-full flex justify-center items-center">
+                    <div className="text-center p-4">
+                      {avatar.isLoadingSession ? (
+                        <div className="flex flex-col items-center">
+                          <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+                          <p className="mt-2">Loading avatar...</p>
+                        </div>
+                      ) : (
+                        <Button 
+                          onClick={avatar.startSession}
+                          className="bg-gradient-to-tr from-indigo-500 to-indigo-300 text-white"
+                        >
+                          Start Avatar
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="p-4 bg-white border-t border-gray-200">
@@ -175,6 +230,15 @@ export function ChatInterface() {
                 <ButtonText>Play game</ButtonText>
               </Button>
               {/* )} */}
+              
+              <Button
+                onClick={() => setShowAvatar(!showAvatar)}
+                variant={showAvatar ? "outline" : "secondary"}
+                className="min-w-[40px]"
+              >
+                <Video className="sm:mr-2 h-4 w-4" />
+                <ButtonText>{showAvatar ? "Hide Avatar" : "Show Avatar"}</ButtonText>
+              </Button>
             </div>
 
             {webRtc.isConnected && (
