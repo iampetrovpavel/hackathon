@@ -273,7 +273,7 @@ export function ChatInterface() {
               </Button> */}
             </div>
 
-            {webRtc.isConnected && (
+            {/* {webRtc.isConnected && (
               <form onSubmit={handleSendMessage} className="flex gap-2">
                 <input
                   ref={inputRef}
@@ -293,7 +293,7 @@ export function ChatInterface() {
                   <ArrowRight className="h-4 w-4 ml-1" />
                 </Button>
               </form>
-            )}
+            )} */}
           </div>
         </div>
       </div>
