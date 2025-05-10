@@ -101,7 +101,7 @@ export function ChatInterface() {
         <div className="flex flex-1 overflow-hidden">
           <div className={`flex-1 overflow-auto p-4 ${showAvatar ? 'w-1/2' : 'w-full'}`}>
             <div className="max-w-3xl mx-auto space-y-4">
-              {messages.map((message, index) => (
+              {messages.filter(m=>m.role === 'assistant').map((message, index) => (
                 <div
                   key={index}
                   className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'
