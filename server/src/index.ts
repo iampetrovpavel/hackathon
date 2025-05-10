@@ -32,7 +32,7 @@ app.get('/session', async (c) => {
 			// model: "gpt-4o-mini-realtime-preview",
 			instructions: instructions,
 			voice: "ash",
-			temperature: 0.4,
+			temperature: 0.6,
 		}),
 	});
 	const result = await response.json();
