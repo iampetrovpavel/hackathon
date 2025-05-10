@@ -60,7 +60,7 @@ const useWebRtcAi = () => {
         }
     }, []);
 
-    async function init() {
+    async function init(instructionsType?: string) {
         try {
             setIsConnecting(true);
             setError(null);
@@ -72,8 +72,12 @@ const useWebRtcAi = () => {
                 throw new Error("Server URL not configured. Please check your environment variables.");
             }
 
-            const tokenResponse = await fetch(`${serverUrl}/session`);
-            
+            const url = instructionsType
+                ? `${serverUrl}/session?instructions=${instructionsType}`
+                : `${serverUrl}/session`;
+
+            const tokenResponse = await fetch(url);
+
             // Check if the response is OK and is JSON
             if (!tokenResponse.ok) {
                 const contentType = tokenResponse.headers.get("content-type");
@@ -139,24 +143,46 @@ const useWebRtcAi = () => {
 
             dc.onopen = () => {
                 console.log("Data channel is open");
-                const event = {
-                    type: 'session.update',
-                    session: {
-                        modalities: ['text', 'audio'],
-                        input_audio_transcription: {
-                            model: 'whisper-1',
+                if (instructionsType !== 'role_play') {
+                    const event = {
+                        type: 'session.update',
+                        session: {
+                            modalities: ['text', 'audio'],
+                            input_audio_transcription: {
+                                model: 'whisper-1',
+                            },
                         },
-                    },
-                }
-                dc.send(JSON.stringify(event));
-                                const msg = {
-                    type: 'response.create',
-                    "response": {
-                        "modalities": ["text", "audio"],
-                        "instructions": "Start with a friendly greeting and ask about the problem.",
                     }
+                    dc.send(JSON.stringify(event));
+                    const msg = {
+                        type: 'response.create',
+                        "response": {
+                            "modalities": ["text", "audio"],
+                            "instructions": "Start with a friendly greeting and ask about the problem.",
+                        }
+                    }
+                    dc.send(JSON.stringify(msg));
                 }
-                dc.send(JSON.stringify(msg));
+                // } else {
+                //     const event = {
+                //         type: 'session.update',
+                //         session: {
+                //             modalities: ['text', 'audio'],
+                //             input_audio_transcription: {
+                //                 model: 'whisper-1',
+                //             },
+                //         },
+                //     }
+                //     dc.send(JSON.stringify(event));
+                //     const msg = {
+                //         type: 'response.create',
+                //         "response": {
+                //             "modalities": ["text", "audio"],
+                //             "instructions": "Hey you.",
+                //         }
+                //     }
+                //     dc.send(JSON.stringify(msg));
+                // }
             };
 
             dc.addEventListener("message", (e) => {
@@ -173,7 +199,7 @@ const useWebRtcAi = () => {
                             timestamp: new Date()
                         };
                         setTranscription(prev => {
-                            if(gettingData.current === false) {
+                            if (gettingData.current === false) {
                                 gettingData.current = true;
                                 collectService.sendMessagesToBackend([...prev, newTranscription]).then((data) => {
                                     const projectData: ProjectData = JSON.parse(jsonrepair(data.content));
@@ -189,7 +215,7 @@ const useWebRtcAi = () => {
                         });
                         onNewTranscription.current(newTranscription);
                     }
-                    if(msg.type === 'conversation.item.input_audio_transcription.completed'){
+                    if (msg.type === 'conversation.item.input_audio_transcription.completed') {
                         // console.log(msg);
                         const newTranscription: VoiceTranscription = {
                             role: 'user',
@@ -199,7 +225,7 @@ const useWebRtcAi = () => {
                         setTranscription(prev => {
                             const updatedTranscriptions = [...prev, newTranscription];
                             // Send the updated transcriptions to the backend
-                            if(gettingData.current === false) {
+                            if (gettingData.current === false) {
                                 gettingData.current = true;
                                 collectService.sendMessagesToBackend([...prev, newTranscription]).then((data) => {
                                     const projectData: ProjectData = JSON.parse(jsonrepair(data.content));
@@ -215,7 +241,7 @@ const useWebRtcAi = () => {
                         });
                         onNewTranscription.current(newTranscription);
                     }
-                    if(msg.type === 'response.done' && msg.response.output[0].content[0].text){
+                    if (msg.type === 'response.done' && msg.response.output[0].content[0].text) {
                         console.log("response.done", msg);
                         const newTranscription: VoiceTranscription = {
                             role: 'assistant',
@@ -225,7 +251,7 @@ const useWebRtcAi = () => {
                         setTranscription(prev => [...prev, newTranscription]);
                         onNewTranscription.current(newTranscription);
                     }
-                        
+
                 } catch (error) {
                     console.error("Error parsing data channel message:", error);
                 }

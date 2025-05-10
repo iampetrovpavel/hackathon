@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Mic, MicOff, Power, PowerOff, Loader2, FileText, AudioLines, VolumeX, Volume2, ArrowRight } from 'lucide-react';
+import { Mic, MicOff, Power, PowerOff, Loader2, Play, AudioLines, VolumeX, Volume2, ArrowRight } from 'lucide-react';
 import { Button } from './ui/button';
 import useWebRtcAi from '../hooks/useWebRtcAi';
 import { useChatStore } from '../store/chat-store';
@@ -8,9 +8,17 @@ import { Header } from './header';
 import ReactMarkdown from 'react-markdown'
 import { VoiceTranscription } from '../types';
 import { useNavigate } from 'react-router-dom';
+import type { StartAvatarResponse } from '@heygen/streaming-avatar'
+import StreamingAvatar, {
+  AvatarQuality,
+  StreamingEvents,
+  TaskMode,
+  TaskType,
+  VoiceEmotion,
+} from '@heygen/streaming-avatar'
 
 const ButtonText = ({ children }: { children: React.ReactNode }) => (
-  <span className="hidden sm:inline">
+  <span className="hidden sm:flex sm:items-center p-0 m-0">
     {children}
   </span>
 );
@@ -40,7 +48,7 @@ export function ChatInterface() {
 
   const handleConnect = async () => {
     clearMessages();
-    await webRtc.init();
+    await webRtc.init('default');
     setIsConnected(true);
   };
 
@@ -71,6 +79,20 @@ export function ChatInterface() {
 
       <div className="flex-1 overflow-hidden flex flex-col">
         <div className="flex-1 overflow-auto p-4">
+          <div className='absolute top-0 left-0 w-full h-full bg-black opacity-50 z-10' />
+            <video
+              ref={mediaStream}
+              autoPlay
+              playsInline
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'contain',
+              }}
+            >
+              <track kind="captions" />
+            </video>
+          </div>
           <div className="max-w-3xl mx-auto space-y-4">
             {messages.map((message, index) => (
               <div
@@ -106,17 +128,17 @@ export function ChatInterface() {
               >
                 {webRtc.isConnecting ? (
                   <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <Loader2 className="sm:mr-2 h-4 w-4 animate-spin" />
                     Connecting...
                   </>
                 ) : webRtc.isConnected ? (
                   <>
-                    <PowerOff className="mr-2 h-4 w-4" />
+                    <PowerOff className="sm:mr-2 h-4 w-4" />
                     <ButtonText>Disconnect</ButtonText>
                   </>
                 ) : (
                   <>
-                    <AudioLines className="mr-2 h-4 w-4" />
+                    <AudioLines className="sm:mr-2 h-4 w-4" />
                     Start dialog
                   </>
                 )}
@@ -130,12 +152,12 @@ export function ChatInterface() {
                   >
                     {webRtc.isListening ? (
                       <>
-                        <MicOff className="mr-2 h-4" />
+                        <MicOff className="sm:mr-2 h-4" />
                         <ButtonText>Stop Listening</ButtonText>
                       </>
                     ) : (
                       <>
-                        <Mic className="mr-2 h-4 w-4" />
+                        <Mic className="sm:mr-2 h-4 w-4" />
                         <ButtonText>Start Listening</ButtonText>
                       </>
                     )}
@@ -147,31 +169,34 @@ export function ChatInterface() {
                   >
                     {webRtc.isAssistantMuted ? (
                       <>
-                        <VolumeX className="mr-2 h-4 w-4" />
+                        <VolumeX className="sm:mr-2 h-4 w-4" />
                         <ButtonText>Unmute Assistant</ButtonText>
                       </>
                     ) : (
                       <>
-                        <Volume2 className="mr-2 h-4 w-4" />
+                        <Volume2 className="sm:mr-2 h-4 w-4" />
                         <ButtonText>Mute Assistant</ButtonText>
                       </>
                     )}
                   </Button>
                 </>
               )}
-              {webRtc.projectData?.completed === true && (
-                <Button
-                  onClick={() => {
-                    setProjectData(webRtc.projectData!)
-                    // navigate('/request')
-                  }}
-                  variant="secondary"
-                  className="min-w-[40px] bg-indigo-500 text-white"
-                >
-                  {/* <FileText className="mr-2 h-4 w-4" /> */}
-                  <ButtonText>Simulate</ButtonText>
-                </Button>
-              )}
+              {/* {webRtc.projectData?.completed === true && ( */}
+              <Button
+                onClick={async () => {
+                  setProjectData(webRtc.projectData!);
+                  handleDisconnect();
+                  clearMessages();
+                  await webRtc.init('role_play');
+                  setIsConnected(true);
+                }}
+                variant="secondary"
+                className="min-w-[40px] bg-indigo-500 text-white"
+              >
+                <Play className="sm:mr-2 h-4 w-4" />
+                <ButtonText>Play game</ButtonText>
+              </Button>
+              {/* )} */}
             </div>
 
             {webRtc.isConnected && (
