@@ -11,7 +11,7 @@ export function Header() {
         <div className="flex items-center space-x-2">
           <h1 className="text-2xl font-bold text-white">Hackathon Demo</h1>
         </div>
-        <nav className="flex space-x-4">
+        {/* <nav className="flex space-x-4">
           <Link 
             to="/" 
             className={`text-sm font-medium ${location.pathname === '/' ? 'text-white' : 'text-gray-300 hover:text-white'}`}
@@ -25,7 +25,7 @@ export function Header() {
             <Video className="w-4 h-4 mr-1" />
             Avatar
           </Link>
-        </nav>
+        </nav> */}
       </div>
     </header>
   );

@@ -56,10 +56,10 @@ export function ChatInterface() {
       setShowAvatar(true);
       
       // Mute assistant audio since we'll use the avatar
-      if (!webRtc.isAssistantMuted) {
-        wasAssistantMuted.current = false;
-        webRtc.toggleAssistantMute();
-      }
+      // if (!webRtc.isAssistantMuted) {
+      //   wasAssistantMuted.current = false;
+      //   webRtc.toggleAssistantMute();
+      // }
       
       // Start avatar session if not already started
       if (!avatar.stream) {
@@ -211,7 +211,7 @@ export function ChatInterface() {
                       </>
                     )}
                   </Button>
-                  {/* <Button
+                  <Button
                     onClick={webRtc.toggleAssistantMute}
                     variant={webRtc.isAssistantMuted ? "destructive" : "default"}
                     className="min-w-[40px]"
@@ -227,7 +227,7 @@ export function ChatInterface() {
                         <ButtonText>Mute Assistant</ButtonText>
                       </>
                     )}
-                  </Button> */}
+                  </Button>
                 </>
               )}
               {/* {webRtc.projectData?.completed === true && ( */}
@@ -244,10 +244,10 @@ export function ChatInterface() {
                     setShowAvatar(true);
                     
                     // Mute assistant audio since we'll use the avatar
-                    if (!webRtc.isAssistantMuted) {
-                      wasAssistantMuted.current = false;
-                      webRtc.toggleAssistantMute();
-                    }
+                    // if (!webRtc.isAssistantMuted) {
+                    //   wasAssistantMuted.current = false;
+                    //   webRtc.toggleAssistantMute();
+                    // }
                     
                     // Start avatar session if not already started
                     if (!avatar.stream) {
