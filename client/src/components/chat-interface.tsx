@@ -8,14 +8,6 @@ import { Header } from './header';
 import ReactMarkdown from 'react-markdown'
 import { VoiceTranscription } from '../types';
 import { useNavigate } from 'react-router-dom';
-import type { StartAvatarResponse } from '@heygen/streaming-avatar'
-import StreamingAvatar, {
-  AvatarQuality,
-  StreamingEvents,
-  TaskMode,
-  TaskType,
-  VoiceEmotion,
-} from '@heygen/streaming-avatar'
 
 const ButtonText = ({ children }: { children: React.ReactNode }) => (
   <span className="hidden sm:flex sm:items-center p-0 m-0">
@@ -79,20 +71,6 @@ export function ChatInterface() {
 
       <div className="flex-1 overflow-hidden flex flex-col">
         <div className="flex-1 overflow-auto p-4">
-          <div className='absolute top-0 left-0 w-full h-full bg-black opacity-50 z-10' />
-            <video
-              ref={mediaStream}
-              autoPlay
-              playsInline
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'contain',
-              }}
-            >
-              <track kind="captions" />
-            </video>
-          </div>
           <div className="max-w-3xl mx-auto space-y-4">
             {messages.map((message, index) => (
               <div
