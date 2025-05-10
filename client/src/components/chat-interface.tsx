@@ -50,6 +50,22 @@ export function ChatInterface() {
     clearMessages();
     await webRtc.init('default');
     setIsConnected(true);
+    
+    // Automatically show and start avatar when dialog starts
+    if (!showAvatar) {
+      setShowAvatar(true);
+      
+      // Mute assistant audio since we'll use the avatar
+      if (!webRtc.isAssistantMuted) {
+        wasAssistantMuted.current = false;
+        webRtc.toggleAssistantMute();
+      }
+      
+      // Start avatar session if not already started
+      if (!avatar.stream) {
+        avatar.startSession();
+      }
+    }
   };
 
   const handleDisconnect = () => {
@@ -195,7 +211,7 @@ export function ChatInterface() {
                       </>
                     )}
                   </Button>
-                  <Button
+                  {/* <Button
                     onClick={webRtc.toggleAssistantMute}
                     variant={webRtc.isAssistantMuted ? "destructive" : "default"}
                     className="min-w-[40px]"
@@ -211,7 +227,7 @@ export function ChatInterface() {
                         <ButtonText>Mute Assistant</ButtonText>
                       </>
                     )}
-                  </Button>
+                  </Button> */}
                 </>
               )}
               {/* {webRtc.projectData?.completed === true && ( */}
@@ -222,6 +238,22 @@ export function ChatInterface() {
                   clearMessages();
                   await webRtc.init('role_play');
                   setIsConnected(true);
+                  
+                  // Automatically show and start avatar when playing a game
+                  if (!showAvatar) {
+                    setShowAvatar(true);
+                    
+                    // Mute assistant audio since we'll use the avatar
+                    if (!webRtc.isAssistantMuted) {
+                      wasAssistantMuted.current = false;
+                      webRtc.toggleAssistantMute();
+                    }
+                    
+                    // Start avatar session if not already started
+                    if (!avatar.stream) {
+                      avatar.startSession();
+                    }
+                  }
                 }}
                 variant="secondary"
                 className="min-w-[40px] bg-indigo-500 text-white"

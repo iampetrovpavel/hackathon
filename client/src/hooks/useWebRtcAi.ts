@@ -126,6 +126,7 @@ const useWebRtcAi = () => {
             // Set up to play remote audio from the model
             const audioEl = document.createElement("audio");
             audioEl.autoplay = true;
+            audioEl.muted = true;
             audioElementRef.current = audioEl;
             pc.ontrack = e => audioEl.srcObject = e.streams[0];
 
@@ -350,13 +351,14 @@ const useWebRtcAi = () => {
     }, [disconnect]);
 
     const toggleAssistantMute = useCallback(() => {
-        setIsAssistantMuted(prev => {
-            const newMuted = !prev;
+        // setIsAssistantMuted(prev => {
+        //     const newMuted = !prev;
             if (audioElementRef.current) {
-                audioElementRef.current.muted = newMuted;
+                audioElementRef.current.muted = true;
+                // audioElementRef.current.muted = newMuted;
             }
-            return newMuted;
-        });
+        //     return newMuted;
+        // });
     }, []);
 
     return {
